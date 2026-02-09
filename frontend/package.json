@@ -1,0 +1,8 @@
+﻿{
+  "name": "studysprint-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"Scaffold only. Add Vite or CRA later.\""
+  }
+}
