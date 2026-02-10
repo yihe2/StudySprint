@@ -1,42 +1,60 @@
-#root {
-  max-width: 1280px;
+.app {
+  max-width: 760px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 2rem 1rem;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+h1 {
+  margin: 0 0 0.5rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.status {
+  margin: 0;
+  color: #4b5563;
 }
 
 .card {
-  padding: 2em;
+  margin-top: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #ffffff;
 }
 
-.read-the-docs {
-  color: #888;
+h2 {
+  margin-top: 0;
+}
+
+.goal-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+input {
+  flex: 1;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  background: #111827;
+  color: #ffffff;
+}
+
+.goal-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.error {
+  margin: 0.5rem 0 0;
+  color: #b91c1c;
 }
