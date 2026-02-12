@@ -61,6 +61,44 @@ function App() {
     }
   }
 
+  async function handleToggleGoal(id) {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/${id}/toggle`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to toggle goal.");
+      }
+      setGoals((prev) => prev.map((goal) => (goal.id === id ? data.item : goal)));
+    } catch (toggleError) {
+      setError(toggleError.message);
+    }
+  }
+
+  async function handleDeleteGoal(id) {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        let message = "Failed to delete goal.";
+        try {
+          const data = await response.json();
+          message = data.error || message;
+        } catch {
+          // Keep default message if response has no JSON body.
+        }
+        throw new Error(message);
+      }
+      setGoals((prev) => prev.filter((goal) => goal.id !== id));
+    } catch (deleteError) {
+      setError(deleteError.message);
+    }
+  }
+
   return (
     <main className="app">
       <header>
@@ -90,7 +128,17 @@ function App() {
         ) : (
           <ul className="goal-list">
             {goals.map((goal) => (
-              <li key={goal.id}>{goal.title}</li>
+              <li key={goal.id} className="goal-item">
+                <span className={goal.completed ? "goal-title done" : "goal-title"}>{goal.title}</span>
+                <div className="goal-actions">
+                  <button type="button" onClick={() => handleToggleGoal(goal.id)}>
+                    {goal.completed ? "Undo" : "Done"}
+                  </button>
+                  <button type="button" className="danger" onClick={() => handleDeleteGoal(goal.id)}>
+                    Delete
+                  </button>
+                </div>
+              </li>
             ))}
           </ul>
         )}

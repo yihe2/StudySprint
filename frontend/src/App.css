@@ -50,6 +50,32 @@ button {
   padding-left: 1.25rem;
 }
 
+.goal-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.4rem 0;
+}
+
+.goal-title {
+  overflow-wrap: anywhere;
+}
+
+.goal-title.done {
+  color: #6b7280;
+  text-decoration: line-through;
+}
+
+.goal-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.danger {
+  background: #991b1b;
+}
+
 .muted {
   color: #6b7280;
 }
