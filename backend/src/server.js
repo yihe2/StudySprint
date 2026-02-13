@@ -11,6 +11,23 @@ const dataDir = path.join(__dirname, "..", "data");
 const dataFile = path.join(dataDir, "goals.json");
 const goals = [];
 let nextGoalId = 1;
+const validPriorities = new Set(["low", "medium", "high"]);
+
+function parsePriority(value) {
+  const normalized = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return validPriorities.has(normalized) ? normalized : null;
+}
+
+function parseDueDate(value) {
+  if (value == null || value === "") {
+    return null;
+  }
+  if (typeof value !== "string") {
+    return null;
+  }
+  const clean = value.trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(clean) ? clean : null;
+}
 
 async function loadGoals() {
   try {
@@ -61,14 +78,26 @@ app.get("/api/goals", (req, res) => {
 
 app.post("/api/goals", async (req, res) => {
   const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
+  const priority = parsePriority(req.body?.priority) || "medium";
+  const dueDate = parseDueDate(req.body?.dueDate);
 
   if (!title) {
     return res.status(400).json({ error: "Title is required." });
   }
 
+  if (req.body?.priority && !parsePriority(req.body.priority)) {
+    return res.status(400).json({ error: "Priority must be low, medium, or high." });
+  }
+
+  if (req.body?.dueDate && !dueDate) {
+    return res.status(400).json({ error: "dueDate must use YYYY-MM-DD format." });
+  }
+
   const goal = {
     id: nextGoalId++,
     title,
+    priority,
+    dueDate,
     completed: false,
     createdAt: new Date().toISOString(),
   };
@@ -76,6 +105,45 @@ app.post("/api/goals", async (req, res) => {
   goals.push(goal);
   await saveGoals();
   return res.status(201).json({ item: goal });
+});
+
+app.patch("/api/goals/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const goal = goals.find((item) => item.id === id);
+
+  if (!goal) {
+    return res.status(404).json({ error: "Goal not found." });
+  }
+
+  const title = req.body?.title;
+  const priority = req.body?.priority;
+  const dueDate = req.body?.dueDate;
+
+  if (title !== undefined) {
+    if (typeof title !== "string" || !title.trim()) {
+      return res.status(400).json({ error: "Title must be a non-empty string." });
+    }
+    goal.title = title.trim();
+  }
+
+  if (priority !== undefined) {
+    const parsed = parsePriority(priority);
+    if (!parsed) {
+      return res.status(400).json({ error: "Priority must be low, medium, or high." });
+    }
+    goal.priority = parsed;
+  }
+
+  if (dueDate !== undefined) {
+    const parsed = parseDueDate(dueDate);
+    if (dueDate !== null && !parsed) {
+      return res.status(400).json({ error: "dueDate must use YYYY-MM-DD format." });
+    }
+    goal.dueDate = parsed;
+  }
+
+  await saveGoals();
+  return res.json({ item: goal });
 });
 
 app.patch("/api/goals/:id/toggle", async (req, res) => {
