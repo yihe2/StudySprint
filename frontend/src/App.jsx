@@ -6,15 +6,44 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 function App() {
   const [health, setHealth] = useState("checking");
   const [goals, setGoals] = useState([]);
+  const [stats, setStats] = useState({ total: 0, active: 0, completed: 0, byPriority: { low: 0, medium: 0, high: 0 } });
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [query, setQuery] = useState("");
   const [error, setError] = useState("");
 
-  async function loadGoals() {
-    const response = await fetch(`${API_BASE}/api/goals`);
+  function toQueryString() {
+    const params = new URLSearchParams();
+    if (filterStatus !== "all") {
+      params.set("status", filterStatus);
+    }
+    if (filterPriority !== "all") {
+      params.set("priority", filterPriority);
+    }
+    if (query.trim()) {
+      params.set("q", query.trim());
+    }
+    const qs = params.toString();
+    return qs ? `?${qs}` : "";
+  }
+
+  async function loadGoals(filters = "") {
+    const response = await fetch(`${API_BASE}/api/goals${filters}`);
     const data = await response.json();
     setGoals(data.items ?? []);
+  }
+
+  async function loadStats(filters = "") {
+    const response = await fetch(`${API_BASE}/api/goals/stats${filters}`);
+    const data = await response.json();
+    setStats(data);
+  }
+
+  async function reloadData(filters = toQueryString()) {
+    await Promise.all([loadGoals(filters), loadStats(filters)]);
   }
 
   useEffect(() => {
@@ -25,7 +54,7 @@ function App() {
           throw new Error("Health check failed.");
         }
         setHealth("online");
-        await loadGoals();
+        await reloadData("");
       } catch (e) {
         setHealth("offline");
         setError("Backend is not reachable.");
@@ -34,6 +63,16 @@ function App() {
 
     init();
   }, []);
+
+  useEffect(() => {
+    if (health !== "online") {
+      return;
+    }
+
+    reloadData().catch(() => {
+      setError("Failed to load goals.");
+    });
+  }, [filterStatus, filterPriority, query]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -60,7 +99,7 @@ function App() {
         throw new Error(data.error || "Failed to add goal.");
       }
 
-      setGoals((prev) => [...prev, data.item]);
+      await reloadData();
       setTitle("");
       setPriority("medium");
       setDueDate("");
@@ -86,7 +125,7 @@ function App() {
       if (!response.ok) {
         throw new Error(data.error || "Failed to toggle goal.");
       }
-      setGoals((prev) => prev.map((goal) => (goal.id === id ? data.item : goal)));
+      await reloadData();
     } catch (toggleError) {
       setError(toggleError.message);
     }
@@ -108,7 +147,7 @@ function App() {
         }
         throw new Error(message);
       }
-      setGoals((prev) => prev.filter((goal) => goal.id !== id));
+      await reloadData();
     } catch (deleteError) {
       setError(deleteError.message);
     }
@@ -122,6 +161,13 @@ function App() {
           API status: <strong>{health}</strong>
         </p>
       </header>
+
+      <section className="card">
+        <h2>Overview</h2>
+        <p className="stats">
+          Total: <strong>{stats.total}</strong> | Active: <strong>{stats.active}</strong> | Completed: <strong>{stats.completed}</strong>
+        </p>
+      </section>
 
       <section className="card">
         <h2>Add Goal</h2>
@@ -144,6 +190,24 @@ function App() {
 
       <section className="card">
         <h2>Goals</h2>
+        <div className="filters">
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            <option value="all">All statuses</option>
+            <option value="active">Active only</option>
+            <option value="completed">Completed only</option>
+          </select>
+          <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
+            <option value="all">All priorities</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search goals"
+          />
+        </div>
         {goals.length === 0 ? (
           <p className="muted">No goals yet.</p>
         ) : (

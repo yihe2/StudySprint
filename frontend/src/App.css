@@ -13,6 +13,11 @@ h1 {
   color: #4b5563;
 }
 
+.stats {
+  margin: 0;
+  color: #374151;
+}
+
 .card {
   margin-top: 1rem;
   border: 1px solid #d1d5db;
@@ -56,6 +61,13 @@ button {
 .goal-list {
   margin: 0;
   padding-left: 1.25rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .goal-item {
