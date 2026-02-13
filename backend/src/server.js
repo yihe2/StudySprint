@@ -29,6 +29,28 @@ function parseDueDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(clean) ? clean : null;
 }
 
+function filterGoals(items, query) {
+  const status = typeof query.status === "string" ? query.status.trim().toLowerCase() : "";
+  const priority = typeof query.priority === "string" ? query.priority.trim().toLowerCase() : "";
+  const q = typeof query.q === "string" ? query.q.trim().toLowerCase() : "";
+
+  return items.filter((goal) => {
+    if (status === "active" && goal.completed) {
+      return false;
+    }
+    if (status === "completed" && !goal.completed) {
+      return false;
+    }
+    if (priority && priority !== "all" && goal.priority !== priority) {
+      return false;
+    }
+    if (q && !goal.title.toLowerCase().includes(q)) {
+      return false;
+    }
+    return true;
+  });
+}
+
 async function loadGoals() {
   try {
     const raw = await fs.readFile(dataFile, "utf8");
@@ -73,7 +95,27 @@ app.get("/api/health", (req, res) => {
 });
 
 app.get("/api/goals", (req, res) => {
-  res.json({ items: goals });
+  const items = filterGoals(goals, req.query);
+  res.json({ items });
+});
+
+app.get("/api/goals/stats", (req, res) => {
+  const items = filterGoals(goals, req.query);
+  const total = items.length;
+  const completed = items.filter((goal) => goal.completed).length;
+  const active = total - completed;
+  const byPriority = {
+    low: items.filter((goal) => goal.priority === "low").length,
+    medium: items.filter((goal) => goal.priority === "medium").length,
+    high: items.filter((goal) => goal.priority === "high").length,
+  };
+
+  res.json({
+    total,
+    active,
+    completed,
+    byPriority,
+  });
 });
 
 app.post("/api/goals", async (req, res) => {
