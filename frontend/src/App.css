@@ -27,14 +27,22 @@ h2 {
 
 .goal-form {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
 input {
-  flex: 1;
+  flex: 1 1 220px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   padding: 0.65rem 0.75rem;
+}
+
+select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  background: #ffffff;
 }
 
 button {
@@ -62,14 +70,50 @@ button {
   overflow-wrap: anywhere;
 }
 
+.goal-content {
+  display: grid;
+  gap: 0.2rem;
+}
+
 .goal-title.done {
   color: #6b7280;
   text-decoration: line-through;
 }
 
+.goal-meta {
+  margin: 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
 .goal-actions {
   display: flex;
   gap: 0.4rem;
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  border: 1px solid #d1d5db;
+  text-transform: capitalize;
+}
+
+.pill.low {
+  color: #0f766e;
+  border-color: #5eead4;
+}
+
+.pill.medium {
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.pill.high {
+  color: #991b1b;
+  border-color: #fca5a5;
 }
 
 .danger {

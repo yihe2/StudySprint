@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-const API_BASE = "http://localhost:3001";
+const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
 function App() {
   const [health, setHealth] = useState("checking");
   const [goals, setGoals] = useState([]);
   const [title, setTitle] = useState("");
+  const [priority, setPriority] = useState("medium");
+  const [dueDate, setDueDate] = useState("");
   const [error, setError] = useState("");
 
   async function loadGoals() {
@@ -26,7 +28,7 @@ function App() {
         await loadGoals();
       } catch (e) {
         setHealth("offline");
-        setError("Backend is not reachable on http://localhost:3001.");
+        setError("Backend is not reachable.");
       }
     }
 
@@ -47,7 +49,11 @@ function App() {
       const response = await fetch(`${API_BASE}/api/goals`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: cleanTitle }),
+        body: JSON.stringify({
+          title: cleanTitle,
+          priority,
+          dueDate: dueDate || null,
+        }),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -56,9 +62,18 @@ function App() {
 
       setGoals((prev) => [...prev, data.item]);
       setTitle("");
+      setPriority("medium");
+      setDueDate("");
     } catch (submitError) {
       setError(submitError.message);
     }
+  }
+
+  function formatDueDate(value) {
+    if (!value) {
+      return "No due date";
+    }
+    return value;
   }
 
   async function handleToggleGoal(id) {
@@ -116,6 +131,12 @@ function App() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Read chapter 2 for 45 minutes"
           />
+          <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           <button type="submit">Add</button>
         </form>
         {error ? <p className="error">{error}</p> : null}
@@ -129,7 +150,13 @@ function App() {
           <ul className="goal-list">
             {goals.map((goal) => (
               <li key={goal.id} className="goal-item">
-                <span className={goal.completed ? "goal-title done" : "goal-title"}>{goal.title}</span>
+                <div className="goal-content">
+                  <span className={goal.completed ? "goal-title done" : "goal-title"}>{goal.title}</span>
+                  <p className="goal-meta">
+                    <span className={`pill ${goal.priority || "medium"}`}>{goal.priority || "medium"}</span>
+                    <span>{formatDueDate(goal.dueDate)}</span>
+                  </p>
+                </div>
                 <div className="goal-actions">
                   <button type="button" onClick={() => handleToggleGoal(goal.id)}>
                     {goal.completed ? "Undo" : "Done"}
