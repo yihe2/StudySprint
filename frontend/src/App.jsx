@@ -13,6 +13,8 @@ function App() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
   const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [error, setError] = useState("");
 
   function toQueryString() {
@@ -26,6 +28,8 @@ function App() {
     if (query.trim()) {
       params.set("q", query.trim());
     }
+    params.set("sortBy", sortBy);
+    params.set("order", sortOrder);
     const qs = params.toString();
     return qs ? `?${qs}` : "";
   }
@@ -72,7 +76,7 @@ function App() {
     reloadData().catch(() => {
       setError("Failed to load goals.");
     });
-  }, [filterStatus, filterPriority, query]);
+  }, [filterStatus, filterPriority, query, sortBy, sortOrder]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -207,6 +211,15 @@ function App() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search goals"
           />
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="createdAt">Sort: Created time</option>
+            <option value="dueDate">Sort: Due date</option>
+            <option value="priority">Sort: Priority</option>
+          </select>
+          <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+            <option value="desc">Order: Desc</option>
+            <option value="asc">Order: Asc</option>
+          </select>
         </div>
         {goals.length === 0 ? (
           <p className="muted">No goals yet.</p>
