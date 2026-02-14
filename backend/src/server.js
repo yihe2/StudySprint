@@ -51,6 +51,37 @@ function filterGoals(items, query) {
   });
 }
 
+function sortGoals(items, query) {
+  const sortBy = typeof query.sortBy === "string" ? query.sortBy.trim().toLowerCase() : "createdat";
+  const order = typeof query.order === "string" ? query.order.trim().toLowerCase() : "desc";
+  const direction = order === "asc" ? 1 : -1;
+  const priorityRank = { low: 1, medium: 2, high: 3 };
+
+  const sorted = [...items];
+  sorted.sort((a, b) => {
+    let left = 0;
+    let right = 0;
+
+    if (sortBy === "priority") {
+      left = priorityRank[a.priority] || 0;
+      right = priorityRank[b.priority] || 0;
+    } else if (sortBy === "duedate") {
+      left = a.dueDate ? Date.parse(a.dueDate) : Number.POSITIVE_INFINITY;
+      right = b.dueDate ? Date.parse(b.dueDate) : Number.POSITIVE_INFINITY;
+    } else {
+      left = Date.parse(a.createdAt);
+      right = Date.parse(b.createdAt);
+    }
+
+    if (left === right) {
+      return 0;
+    }
+    return left > right ? direction : -direction;
+  });
+
+  return sorted;
+}
+
 async function loadGoals() {
   try {
     const raw = await fs.readFile(dataFile, "utf8");
@@ -95,12 +126,14 @@ app.get("/api/health", (req, res) => {
 });
 
 app.get("/api/goals", (req, res) => {
-  const items = filterGoals(goals, req.query);
+  const filtered = filterGoals(goals, req.query);
+  const items = sortGoals(filtered, req.query);
   res.json({ items });
 });
 
 app.get("/api/goals/stats", (req, res) => {
-  const items = filterGoals(goals, req.query);
+  const filtered = filterGoals(goals, req.query);
+  const items = sortGoals(filtered, req.query);
   const total = items.length;
   const completed = items.filter((goal) => goal.completed).length;
   const active = total - completed;
