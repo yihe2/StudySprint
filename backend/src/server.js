@@ -182,6 +182,27 @@ app.post("/api/goals", async (req, res) => {
   return res.status(201).json({ item: goal });
 });
 
+app.patch("/api/goals/actions/complete-all", async (req, res) => {
+  let updated = 0;
+  for (const goal of goals) {
+    if (!goal.completed) {
+      goal.completed = true;
+      updated += 1;
+    }
+  }
+  await saveGoals();
+  return res.json({ updated });
+});
+
+app.delete("/api/goals/actions/clear-completed", async (req, res) => {
+  const before = goals.length;
+  const remaining = goals.filter((goal) => !goal.completed);
+  goals.splice(0, goals.length, ...remaining);
+  const deleted = before - goals.length;
+  await saveGoals();
+  return res.json({ deleted });
+});
+
 app.patch("/api/goals/:id", async (req, res) => {
   const id = Number(req.params.id);
   const goal = goals.find((item) => item.id === id);
