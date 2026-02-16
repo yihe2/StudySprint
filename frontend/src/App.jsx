@@ -157,6 +157,38 @@ function App() {
     }
   }
 
+  async function handleCompleteAll() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/complete-all`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to complete all goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
+  async function handleClearCompleted() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/clear-completed`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to clear completed goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   return (
     <main className="app">
       <header>
@@ -171,6 +203,14 @@ function App() {
         <p className="stats">
           Total: <strong>{stats.total}</strong> | Active: <strong>{stats.active}</strong> | Completed: <strong>{stats.completed}</strong>
         </p>
+        <div className="bulk-actions">
+          <button type="button" onClick={handleCompleteAll}>
+            Complete All Active
+          </button>
+          <button type="button" className="danger" onClick={handleClearCompleted}>
+            Clear Completed
+          </button>
+        </div>
       </section>
 
       <section className="card">
