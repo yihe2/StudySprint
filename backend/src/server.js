@@ -82,6 +82,27 @@ function sortGoals(items, query) {
   return sorted;
 }
 
+function paginateGoals(items, query) {
+  const requestedPage = Number.parseInt(query.page, 10);
+  const requestedPageSize = Number.parseInt(query.pageSize, 10);
+  const pageSize = Number.isFinite(requestedPageSize) && requestedPageSize > 0 ? requestedPageSize : 10;
+  const totalItems = items.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, totalPages) : 1;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+
+  return {
+    items: items.slice(start, end),
+    meta: {
+      page,
+      pageSize,
+      totalItems,
+      totalPages,
+    },
+  };
+}
+
 async function loadGoals() {
   try {
     const raw = await fs.readFile(dataFile, "utf8");
@@ -127,8 +148,9 @@ app.get("/api/health", (req, res) => {
 
 app.get("/api/goals", (req, res) => {
   const filtered = filterGoals(goals, req.query);
-  const items = sortGoals(filtered, req.query);
-  res.json({ items });
+  const sorted = sortGoals(filtered, req.query);
+  const { items, meta } = paginateGoals(sorted, req.query);
+  res.json({ items, meta });
 });
 
 app.get("/api/goals/stats", (req, res) => {
