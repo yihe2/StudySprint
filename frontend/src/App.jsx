@@ -7,6 +7,7 @@ function App() {
   const [health, setHealth] = useState("checking");
   const [goals, setGoals] = useState([]);
   const [stats, setStats] = useState({ total: 0, active: 0, completed: 0, byPriority: { low: 0, medium: 0, high: 0 } });
+  const [meta, setMeta] = useState({ page: 1, pageSize: 10, totalItems: 0, totalPages: 1 });
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
@@ -15,6 +16,8 @@ function App() {
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [error, setError] = useState("");
 
   function toQueryString() {
@@ -30,6 +33,8 @@ function App() {
     }
     params.set("sortBy", sortBy);
     params.set("order", sortOrder);
+    params.set("page", String(page));
+    params.set("pageSize", String(pageSize));
     const qs = params.toString();
     return qs ? `?${qs}` : "";
   }
@@ -38,6 +43,14 @@ function App() {
     const response = await fetch(`${API_BASE}/api/goals${filters}`);
     const data = await response.json();
     setGoals(data.items ?? []);
+    const nextMeta = data.meta ?? {
+      page,
+      pageSize,
+      totalItems: (data.items ?? []).length,
+      totalPages: 1,
+    };
+    setMeta(nextMeta);
+    setPage((current) => (current === nextMeta.page ? current : nextMeta.page));
   }
 
   async function loadStats(filters = "") {
@@ -76,7 +89,11 @@ function App() {
     reloadData().catch(() => {
       setError("Failed to load goals.");
     });
-  }, [filterStatus, filterPriority, query, sortBy, sortOrder]);
+  }, [filterStatus, filterPriority, query, sortBy, sortOrder, page, pageSize]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filterStatus, filterPriority, query, sortBy, sortOrder, pageSize]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -260,6 +277,11 @@ function App() {
             <option value="desc">Order: Desc</option>
             <option value="asc">Order: Asc</option>
           </select>
+          <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
+            <option value={5}>5 per page</option>
+            <option value={10}>10 per page</option>
+            <option value={20}>20 per page</option>
+          </select>
         </div>
         {goals.length === 0 ? (
           <p className="muted">No goals yet.</p>
@@ -286,6 +308,21 @@ function App() {
             ))}
           </ul>
         )}
+        <div className="pagination">
+          <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
+            Previous
+          </button>
+          <span className="page-label">
+            Page {meta.page} of {meta.totalPages} ({meta.totalItems} items)
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
+            disabled={page >= meta.totalPages}
+          >
+            Next
+          </button>
+        </div>
       </section>
     </main>
   );
