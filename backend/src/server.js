@@ -12,6 +12,9 @@ const dataFile = path.join(dataDir, "goals.json");
 const goals = [];
 let nextGoalId = 1;
 const validPriorities = new Set(["low", "medium", "high"]);
+const validStatuses = new Set(["active", "completed"]);
+const validSortBy = new Set(["createdat", "duedate", "priority"]);
+const validSortOrder = new Set(["asc", "desc"]);
 
 function parsePriority(value) {
   const normalized = typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -103,6 +106,52 @@ function paginateGoals(items, query) {
   };
 }
 
+function validateListQuery(query) {
+  if (query.status !== undefined) {
+    const status = String(query.status).trim().toLowerCase();
+    if (!validStatuses.has(status)) {
+      return "status must be active or completed.";
+    }
+  }
+
+  if (query.priority !== undefined) {
+    const priority = String(query.priority).trim().toLowerCase();
+    if (!validPriorities.has(priority)) {
+      return "priority must be low, medium, or high.";
+    }
+  }
+
+  if (query.sortBy !== undefined) {
+    const sortBy = String(query.sortBy).trim().toLowerCase();
+    if (!validSortBy.has(sortBy)) {
+      return "sortBy must be createdAt, dueDate, or priority.";
+    }
+  }
+
+  if (query.order !== undefined) {
+    const order = String(query.order).trim().toLowerCase();
+    if (!validSortOrder.has(order)) {
+      return "order must be asc or desc.";
+    }
+  }
+
+  if (query.page !== undefined) {
+    const page = Number.parseInt(query.page, 10);
+    if (!Number.isFinite(page) || page < 1) {
+      return "page must be a positive integer.";
+    }
+  }
+
+  if (query.pageSize !== undefined) {
+    const pageSize = Number.parseInt(query.pageSize, 10);
+    if (!Number.isFinite(pageSize) || pageSize < 1 || pageSize > 50) {
+      return "pageSize must be between 1 and 50.";
+    }
+  }
+
+  return null;
+}
+
 async function loadGoals() {
   try {
     const raw = await fs.readFile(dataFile, "utf8");
@@ -147,13 +196,23 @@ app.get("/api/health", (req, res) => {
 });
 
 app.get("/api/goals", (req, res) => {
+  const queryError = validateListQuery(req.query);
+  if (queryError) {
+    return res.status(400).json({ error: queryError });
+  }
+
   const filtered = filterGoals(goals, req.query);
   const sorted = sortGoals(filtered, req.query);
   const { items, meta } = paginateGoals(sorted, req.query);
-  res.json({ items, meta });
+  return res.json({ items, meta });
 });
 
 app.get("/api/goals/stats", (req, res) => {
+  const queryError = validateListQuery(req.query);
+  if (queryError) {
+    return res.status(400).json({ error: queryError });
+  }
+
   const filtered = filterGoals(goals, req.query);
   const items = sortGoals(filtered, req.query);
   const total = items.length;
@@ -165,7 +224,7 @@ app.get("/api/goals/stats", (req, res) => {
     high: items.filter((goal) => goal.priority === "high").length,
   };
 
-  res.json({
+  return res.json({
     total,
     active,
     completed,
