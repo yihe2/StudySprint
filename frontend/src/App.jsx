@@ -18,6 +18,10 @@ function App() {
   const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [editingGoalId, setEditingGoalId] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editPriority, setEditPriority] = useState("medium");
+  const [editDueDate, setEditDueDate] = useState("");
   const [error, setError] = useState("");
 
   function toQueryString() {
@@ -174,6 +178,50 @@ function App() {
     }
   }
 
+  function startEdit(goal) {
+    setEditingGoalId(goal.id);
+    setEditTitle(goal.title);
+    setEditPriority(goal.priority || "medium");
+    setEditDueDate(goal.dueDate || "");
+    setError("");
+  }
+
+  function cancelEdit() {
+    setEditingGoalId(null);
+    setEditTitle("");
+    setEditPriority("medium");
+    setEditDueDate("");
+  }
+
+  async function handleSaveEdit(id) {
+    setError("");
+    const cleanTitle = editTitle.trim();
+    if (!cleanTitle) {
+      setError("Goal title cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: cleanTitle,
+          priority: editPriority,
+          dueDate: editDueDate || null,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update goal.");
+      }
+      cancelEdit();
+      await reloadData();
+    } catch (editError) {
+      setError(editError.message);
+    }
+  }
+
   async function handleCompleteAll() {
     setError("");
     try {
@@ -290,19 +338,49 @@ function App() {
             {goals.map((goal) => (
               <li key={goal.id} className="goal-item">
                 <div className="goal-content">
-                  <span className={goal.completed ? "goal-title done" : "goal-title"}>{goal.title}</span>
-                  <p className="goal-meta">
-                    <span className={`pill ${goal.priority || "medium"}`}>{goal.priority || "medium"}</span>
-                    <span>{formatDueDate(goal.dueDate)}</span>
-                  </p>
+                  {editingGoalId === goal.id ? (
+                    <div className="edit-form">
+                      <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                      <select value={editPriority} onChange={(e) => setEditPriority(e.target.value)}>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                      </select>
+                      <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
+                    </div>
+                  ) : (
+                    <>
+                      <span className={goal.completed ? "goal-title done" : "goal-title"}>{goal.title}</span>
+                      <p className="goal-meta">
+                        <span className={`pill ${goal.priority || "medium"}`}>{goal.priority || "medium"}</span>
+                        <span>{formatDueDate(goal.dueDate)}</span>
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className="goal-actions">
-                  <button type="button" onClick={() => handleToggleGoal(goal.id)}>
-                    {goal.completed ? "Undo" : "Done"}
-                  </button>
-                  <button type="button" className="danger" onClick={() => handleDeleteGoal(goal.id)}>
-                    Delete
-                  </button>
+                  {editingGoalId === goal.id ? (
+                    <>
+                      <button type="button" onClick={() => handleSaveEdit(goal.id)}>
+                        Save
+                      </button>
+                      <button type="button" onClick={cancelEdit}>
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button type="button" onClick={() => startEdit(goal)}>
+                        Edit
+                      </button>
+                      <button type="button" onClick={() => handleToggleGoal(goal.id)}>
+                        {goal.completed ? "Undo" : "Done"}
+                      </button>
+                      <button type="button" className="danger" onClick={() => handleDeleteGoal(goal.id)}>
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </div>
               </li>
             ))}

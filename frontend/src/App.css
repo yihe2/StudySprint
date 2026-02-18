@@ -109,11 +109,23 @@ button:disabled {
 .goal-content {
   display: grid;
   gap: 0.2rem;
+  flex: 1;
 }
 
 .goal-title.done {
   color: #6b7280;
   text-decoration: line-through;
+}
+
+.edit-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.edit-form input,
+.edit-form select {
+  padding: 0.45rem 0.55rem;
 }
 
 .goal-meta {
