@@ -152,6 +152,24 @@ function validateListQuery(query) {
   return null;
 }
 
+function normalizeImportedGoal(raw, fallbackId) {
+  const title = typeof raw?.title === "string" ? raw.title.trim() : "";
+  const priority = parsePriority(raw?.priority) || "medium";
+  const dueDate = parseDueDate(raw?.dueDate);
+  const completed = Boolean(raw?.completed);
+  const id = Number.isFinite(Number(raw?.id)) && Number(raw.id) > 0 ? Number(raw.id) : fallbackId;
+  const createdAt =
+    typeof raw?.createdAt === "string" && !Number.isNaN(Date.parse(raw.createdAt))
+      ? new Date(raw.createdAt).toISOString()
+      : new Date().toISOString();
+
+  if (!title) {
+    return null;
+  }
+
+  return { id, title, priority, dueDate, completed, createdAt };
+}
+
 async function loadGoals() {
   try {
     const raw = await fs.readFile(dataFile, "utf8");
@@ -230,6 +248,47 @@ app.get("/api/goals/stats", (req, res) => {
     completed,
     byPriority,
   });
+});
+
+app.get("/api/goals/export", (req, res) => {
+  const payload = JSON.stringify({ items: goals }, null, 2);
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Content-Disposition", "attachment; filename=\"studysprint-goals.json\"");
+  return res.send(`${payload}\n`);
+});
+
+app.post("/api/goals/import", async (req, res) => {
+  const mode = typeof req.body?.mode === "string" ? req.body.mode.trim().toLowerCase() : "replace";
+  const rawItems = Array.isArray(req.body?.items) ? req.body.items : null;
+
+  if (!rawItems) {
+    return res.status(400).json({ error: "items must be an array." });
+  }
+
+  if (mode !== "replace" && mode !== "merge") {
+    return res.status(400).json({ error: "mode must be replace or merge." });
+  }
+
+  const baseId = nextGoalId;
+  const imported = [];
+  for (let i = 0; i < rawItems.length; i += 1) {
+    const normalized = normalizeImportedGoal(rawItems[i], baseId + i);
+    if (!normalized) {
+      return res.status(400).json({ error: `Invalid goal at index ${i}.` });
+    }
+    imported.push(normalized);
+  }
+
+  if (mode === "replace") {
+    goals.splice(0, goals.length, ...imported);
+  } else {
+    goals.push(...imported);
+  }
+
+  const maxId = goals.reduce((max, goal) => Math.max(max, Number(goal.id) || 0), 0);
+  nextGoalId = maxId + 1;
+  await saveGoals();
+  return res.json({ imported: imported.length, total: goals.length, mode });
 });
 
 app.post("/api/goals", async (req, res) => {
