@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
@@ -22,6 +22,8 @@ function App() {
   const [editTitle, setEditTitle] = useState("");
   const [editPriority, setEditPriority] = useState("medium");
   const [editDueDate, setEditDueDate] = useState("");
+  const [importMode, setImportMode] = useState("replace");
+  const fileInputRef = useRef(null);
   const [error, setError] = useState("");
 
   function toQueryString() {
@@ -254,6 +256,58 @@ function App() {
     }
   }
 
+  async function handleExportGoals() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/export`);
+      if (!response.ok) {
+        throw new Error("Failed to export goals.");
+      }
+      const text = await response.text();
+      const blob = new Blob([text], { type: "application/json" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "studysprint-goals.json";
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (exportError) {
+      setError(exportError.message);
+    }
+  }
+
+  async function handleImportFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    setError("");
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const items = Array.isArray(parsed?.items) ? parsed.items : Array.isArray(parsed) ? parsed : null;
+      if (!items) {
+        throw new Error("Import file must contain an items array.");
+      }
+
+      const response = await fetch(`${API_BASE}/api/goals/import`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: importMode, items }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to import goals.");
+      }
+      await reloadData();
+    } catch (importError) {
+      setError(importError.message);
+    } finally {
+      event.target.value = "";
+    }
+  }
+
   return (
     <main className="app">
       <header>
@@ -275,6 +329,23 @@ function App() {
           <button type="button" className="danger" onClick={handleClearCompleted}>
             Clear Completed
           </button>
+          <button type="button" onClick={handleExportGoals}>
+            Export JSON
+          </button>
+          <select value={importMode} onChange={(e) => setImportMode(e.target.value)}>
+            <option value="replace">Import: Replace</option>
+            <option value="merge">Import: Merge</option>
+          </select>
+          <button type="button" onClick={() => fileInputRef.current?.click()}>
+            Import JSON
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json"
+            className="hidden-file-input"
+            onChange={handleImportFile}
+          />
         </div>
       </section>
 

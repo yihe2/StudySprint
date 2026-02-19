@@ -176,3 +176,7 @@ button:disabled {
   margin: 0.5rem 0 0;
   color: #b91c1c;
 }
+
+.hidden-file-input {
+  display: none;
+}
