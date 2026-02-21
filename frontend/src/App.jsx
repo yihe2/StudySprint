@@ -6,7 +6,13 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 function App() {
   const [health, setHealth] = useState("checking");
   const [goals, setGoals] = useState([]);
-  const [stats, setStats] = useState({ total: 0, active: 0, completed: 0, byPriority: { low: 0, medium: 0, high: 0 } });
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    completed: 0,
+    overdue: 0,
+    byPriority: { low: 0, medium: 0, high: 0 },
+  });
   const [meta, setMeta] = useState({ page: 1, pageSize: 10, totalItems: 0, totalPages: 1 });
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("medium");
@@ -140,6 +146,14 @@ function App() {
       return "No due date";
     }
     return value;
+  }
+
+  function isOverdue(goal) {
+    if (!goal.dueDate || goal.completed) {
+      return false;
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    return goal.dueDate < today;
   }
 
   async function handleToggleGoal(id) {
@@ -320,7 +334,8 @@ function App() {
       <section className="card">
         <h2>Overview</h2>
         <p className="stats">
-          Total: <strong>{stats.total}</strong> | Active: <strong>{stats.active}</strong> | Completed: <strong>{stats.completed}</strong>
+          Total: <strong>{stats.total}</strong> | Active: <strong>{stats.active}</strong> | Completed: <strong>{stats.completed}</strong> | Overdue:{" "}
+          <strong>{stats.overdue || 0}</strong>
         </p>
         <div className="bulk-actions">
           <button type="button" onClick={handleCompleteAll}>
@@ -375,6 +390,7 @@ function App() {
             <option value="all">All statuses</option>
             <option value="active">Active only</option>
             <option value="completed">Completed only</option>
+            <option value="overdue">Overdue only</option>
           </select>
           <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
             <option value="all">All priorities</option>
@@ -425,6 +441,7 @@ function App() {
                       <p className="goal-meta">
                         <span className={`pill ${goal.priority || "medium"}`}>{goal.priority || "medium"}</span>
                         <span>{formatDueDate(goal.dueDate)}</span>
+                        {isOverdue(goal) ? <span className="pill overdue">Overdue</span> : null}
                       </p>
                     </>
                   )}

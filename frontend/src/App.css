@@ -164,6 +164,11 @@ button:disabled {
   border-color: #fca5a5;
 }
 
+.pill.overdue {
+  color: #9f1239;
+  border-color: #f9a8d4;
+}
+
 .danger {
   background: #991b1b;
 }
