@@ -12,7 +12,7 @@ const dataFile = path.join(dataDir, "goals.json");
 const goals = [];
 let nextGoalId = 1;
 const validPriorities = new Set(["low", "medium", "high"]);
-const validStatuses = new Set(["active", "completed", "overdue"]);
+const validStatuses = new Set(["active", "completed", "overdue", "archived"]);
 const validSortBy = new Set(["createdat", "duedate", "priority"]);
 const validSortOrder = new Set(["asc", "desc"]);
 
@@ -36,13 +36,24 @@ function filterGoals(items, query) {
   const status = typeof query.status === "string" ? query.status.trim().toLowerCase() : "";
   const priority = typeof query.priority === "string" ? query.priority.trim().toLowerCase() : "";
   const q = typeof query.q === "string" ? query.q.trim().toLowerCase() : "";
+  const includeArchived = String(query.includeArchived).trim().toLowerCase() === "true";
   const today = new Date().toISOString().slice(0, 10);
 
   return items.filter((goal) => {
+    const archived = Boolean(goal.archived);
+    if (!includeArchived && status !== "archived" && archived) {
+      return false;
+    }
     if (status === "active" && goal.completed) {
       return false;
     }
     if (status === "completed" && !goal.completed) {
+      return false;
+    }
+    if (status === "archived" && !archived) {
+      return false;
+    }
+    if (status !== "archived" && archived) {
       return false;
     }
     if (status === "overdue") {
@@ -117,7 +128,7 @@ function validateListQuery(query) {
   if (query.status !== undefined) {
     const status = String(query.status).trim().toLowerCase();
     if (!validStatuses.has(status)) {
-      return "status must be active, completed, or overdue.";
+      return "status must be active, completed, overdue, or archived.";
     }
   }
 
@@ -156,6 +167,13 @@ function validateListQuery(query) {
     }
   }
 
+  if (query.includeArchived !== undefined) {
+    const includeArchived = String(query.includeArchived).trim().toLowerCase();
+    if (includeArchived !== "true" && includeArchived !== "false") {
+      return "includeArchived must be true or false.";
+    }
+  }
+
   return null;
 }
 
@@ -164,6 +182,7 @@ function normalizeImportedGoal(raw, fallbackId) {
   const priority = parsePriority(raw?.priority) || "medium";
   const dueDate = parseDueDate(raw?.dueDate);
   const completed = Boolean(raw?.completed);
+  const archived = Boolean(raw?.archived);
   const id = Number.isFinite(Number(raw?.id)) && Number(raw.id) > 0 ? Number(raw.id) : fallbackId;
   const createdAt =
     typeof raw?.createdAt === "string" && !Number.isNaN(Date.parse(raw.createdAt))
@@ -174,7 +193,7 @@ function normalizeImportedGoal(raw, fallbackId) {
     return null;
   }
 
-  return { id, title, priority, dueDate, completed, createdAt };
+  return { id, title, priority, dueDate, completed, archived, createdAt };
 }
 
 async function loadGoals() {
@@ -324,6 +343,7 @@ app.post("/api/goals", async (req, res) => {
     priority,
     dueDate,
     completed: false,
+    archived: false,
     createdAt: new Date().toISOString(),
   };
 
@@ -364,6 +384,7 @@ app.patch("/api/goals/:id", async (req, res) => {
   const title = req.body?.title;
   const priority = req.body?.priority;
   const dueDate = req.body?.dueDate;
+  const archived = req.body?.archived;
 
   if (title !== undefined) {
     if (typeof title !== "string" || !title.trim()) {
@@ -388,6 +409,30 @@ app.patch("/api/goals/:id", async (req, res) => {
     goal.dueDate = parsed;
   }
 
+  if (archived !== undefined) {
+    if (typeof archived !== "boolean") {
+      return res.status(400).json({ error: "archived must be a boolean." });
+    }
+    goal.archived = archived;
+  }
+
+  await saveGoals();
+  return res.json({ item: goal });
+});
+
+app.patch("/api/goals/:id/archive", async (req, res) => {
+  const id = Number(req.params.id);
+  const goal = goals.find((item) => item.id === id);
+
+  if (!goal) {
+    return res.status(404).json({ error: "Goal not found." });
+  }
+
+  if (req.body?.archived !== undefined && typeof req.body.archived !== "boolean") {
+    return res.status(400).json({ error: "archived must be a boolean." });
+  }
+
+  goal.archived = req.body?.archived ?? !goal.archived;
   await saveGoals();
   return res.json({ item: goal });
 });
