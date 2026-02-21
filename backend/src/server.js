@@ -12,7 +12,7 @@ const dataFile = path.join(dataDir, "goals.json");
 const goals = [];
 let nextGoalId = 1;
 const validPriorities = new Set(["low", "medium", "high"]);
-const validStatuses = new Set(["active", "completed"]);
+const validStatuses = new Set(["active", "completed", "overdue"]);
 const validSortBy = new Set(["createdat", "duedate", "priority"]);
 const validSortOrder = new Set(["asc", "desc"]);
 
@@ -36,6 +36,7 @@ function filterGoals(items, query) {
   const status = typeof query.status === "string" ? query.status.trim().toLowerCase() : "";
   const priority = typeof query.priority === "string" ? query.priority.trim().toLowerCase() : "";
   const q = typeof query.q === "string" ? query.q.trim().toLowerCase() : "";
+  const today = new Date().toISOString().slice(0, 10);
 
   return items.filter((goal) => {
     if (status === "active" && goal.completed) {
@@ -43,6 +44,12 @@ function filterGoals(items, query) {
     }
     if (status === "completed" && !goal.completed) {
       return false;
+    }
+    if (status === "overdue") {
+      const isOverdue = Boolean(goal.dueDate) && goal.dueDate < today && !goal.completed;
+      if (!isOverdue) {
+        return false;
+      }
     }
     if (priority && priority !== "all" && goal.priority !== priority) {
       return false;
@@ -110,7 +117,7 @@ function validateListQuery(query) {
   if (query.status !== undefined) {
     const status = String(query.status).trim().toLowerCase();
     if (!validStatuses.has(status)) {
-      return "status must be active or completed.";
+      return "status must be active, completed, or overdue.";
     }
   }
 
@@ -236,6 +243,8 @@ app.get("/api/goals/stats", (req, res) => {
   const total = items.length;
   const completed = items.filter((goal) => goal.completed).length;
   const active = total - completed;
+  const today = new Date().toISOString().slice(0, 10);
+  const overdue = items.filter((goal) => Boolean(goal.dueDate) && goal.dueDate < today && !goal.completed).length;
   const byPriority = {
     low: items.filter((goal) => goal.priority === "low").length,
     medium: items.filter((goal) => goal.priority === "medium").length,
@@ -246,6 +255,7 @@ app.get("/api/goals/stats", (req, res) => {
     total,
     active,
     completed,
+    overdue,
     byPriority,
   });
 });
