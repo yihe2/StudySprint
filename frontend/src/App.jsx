@@ -19,6 +19,7 @@ function App() {
   const [dueDate, setDueDate] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
+  const [includeArchived, setIncludeArchived] = useState(false);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
@@ -43,6 +44,7 @@ function App() {
     if (query.trim()) {
       params.set("q", query.trim());
     }
+    params.set("includeArchived", includeArchived ? "true" : "false");
     params.set("sortBy", sortBy);
     params.set("order", sortOrder);
     params.set("page", String(page));
@@ -101,11 +103,11 @@ function App() {
     reloadData().catch(() => {
       setError("Failed to load goals.");
     });
-  }, [filterStatus, filterPriority, query, sortBy, sortOrder, page, pageSize]);
+  }, [filterStatus, filterPriority, includeArchived, query, sortBy, sortOrder, page, pageSize]);
 
   useEffect(() => {
     setPage(1);
-  }, [filterStatus, filterPriority, query, sortBy, sortOrder, pageSize]);
+  }, [filterStatus, filterPriority, includeArchived, query, sortBy, sortOrder, pageSize]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -156,6 +158,10 @@ function App() {
     return goal.dueDate < today;
   }
 
+  function isArchived(goal) {
+    return Boolean(goal.archived);
+  }
+
   async function handleToggleGoal(id) {
     setError("");
     try {
@@ -191,6 +197,24 @@ function App() {
       await reloadData();
     } catch (deleteError) {
       setError(deleteError.message);
+    }
+  }
+
+  async function handleArchiveGoal(id, archived) {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/${id}/archive`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update archive status.");
+      }
+      await reloadData();
+    } catch (archiveError) {
+      setError(archiveError.message);
     }
   }
 
@@ -391,6 +415,7 @@ function App() {
             <option value="active">Active only</option>
             <option value="completed">Completed only</option>
             <option value="overdue">Overdue only</option>
+            <option value="archived">Archived only</option>
           </select>
           <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
             <option value="all">All priorities</option>
@@ -417,6 +442,14 @@ function App() {
             <option value={10}>10 per page</option>
             <option value={20}>20 per page</option>
           </select>
+          <label className="checkbox-inline">
+            <input
+              type="checkbox"
+              checked={includeArchived}
+              onChange={(e) => setIncludeArchived(e.target.checked)}
+            />
+            Show archived
+          </label>
         </div>
         {goals.length === 0 ? (
           <p className="muted">No goals yet.</p>
@@ -442,6 +475,7 @@ function App() {
                         <span className={`pill ${goal.priority || "medium"}`}>{goal.priority || "medium"}</span>
                         <span>{formatDueDate(goal.dueDate)}</span>
                         {isOverdue(goal) ? <span className="pill overdue">Overdue</span> : null}
+                        {isArchived(goal) ? <span className="pill archived">Archived</span> : null}
                       </p>
                     </>
                   )}
@@ -460,6 +494,9 @@ function App() {
                     <>
                       <button type="button" onClick={() => startEdit(goal)}>
                         Edit
+                      </button>
+                      <button type="button" onClick={() => handleArchiveGoal(goal.id, !isArchived(goal))}>
+                        {isArchived(goal) ? "Unarchive" : "Archive"}
                       </button>
                       <button type="button" onClick={() => handleToggleGoal(goal.id)}>
                         {goal.completed ? "Undo" : "Done"}
