@@ -437,6 +437,33 @@ app.patch("/api/goals/:id/archive", async (req, res) => {
   return res.json({ item: goal });
 });
 
+app.post("/api/goals/:id/duplicate-tomorrow", async (req, res) => {
+  const id = Number(req.params.id);
+  const source = goals.find((item) => item.id === id);
+
+  if (!source) {
+    return res.status(404).json({ error: "Goal not found." });
+  }
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const dueDate = tomorrow.toISOString().slice(0, 10);
+
+  const goal = {
+    id: nextGoalId++,
+    title: source.title,
+    priority: source.priority || "medium",
+    dueDate,
+    completed: false,
+    archived: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  goals.push(goal);
+  await saveGoals();
+  return res.status(201).json({ item: goal });
+});
+
 app.patch("/api/goals/:id/toggle", async (req, res) => {
   const id = Number(req.params.id);
   const goal = goals.find((item) => item.id === id);
