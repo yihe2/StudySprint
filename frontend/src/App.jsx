@@ -218,6 +218,22 @@ function App() {
     }
   }
 
+  async function handleDuplicateTomorrow(id) {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/${id}/duplicate-tomorrow`, {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to duplicate goal.");
+      }
+      await reloadData();
+    } catch (duplicateError) {
+      setError(duplicateError.message);
+    }
+  }
+
   function startEdit(goal) {
     setEditingGoalId(goal.id);
     setEditTitle(goal.title);
@@ -494,6 +510,9 @@ function App() {
                     <>
                       <button type="button" onClick={() => startEdit(goal)}>
                         Edit
+                      </button>
+                      <button type="button" onClick={() => handleDuplicateTomorrow(goal.id)}>
+                        Tomorrow
                       </button>
                       <button type="button" onClick={() => handleArchiveGoal(goal.id, !isArchived(goal))}>
                         {isArchived(goal) ? "Unarchive" : "Archive"}
