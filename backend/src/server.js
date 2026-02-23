@@ -373,6 +373,18 @@ app.delete("/api/goals/actions/clear-completed", async (req, res) => {
   return res.json({ deleted });
 });
 
+app.patch("/api/goals/actions/archive-completed", async (req, res) => {
+  let updated = 0;
+  for (const goal of goals) {
+    if (goal.completed && !goal.archived) {
+      goal.archived = true;
+      updated += 1;
+    }
+  }
+  await saveGoals();
+  return res.json({ updated });
+});
+
 app.patch("/api/goals/:id", async (req, res) => {
   const id = Number(req.params.id);
   const goal = goals.find((item) => item.id === id);
