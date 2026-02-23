@@ -310,6 +310,22 @@ function App() {
     }
   }
 
+  async function handleArchiveCompleted() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/archive-completed`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to archive completed goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handleExportGoals() {
     setError("");
     try {
@@ -383,6 +399,9 @@ function App() {
           </button>
           <button type="button" className="danger" onClick={handleClearCompleted}>
             Clear Completed
+          </button>
+          <button type="button" onClick={handleArchiveCompleted}>
+            Archive Completed
           </button>
           <button type="button" onClick={handleExportGoals}>
             Export JSON
