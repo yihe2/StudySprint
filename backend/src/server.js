@@ -279,6 +279,25 @@ app.get("/api/goals/stats", (req, res) => {
   });
 });
 
+app.get("/api/goals/today", (req, res) => {
+  const includeArchived = String(req.query.includeArchived).trim().toLowerCase() === "true";
+  const today = new Date().toISOString().slice(0, 10);
+  const items = goals.filter((goal) => {
+    if (!goal.dueDate || goal.dueDate !== today) {
+      return false;
+    }
+    if (goal.completed) {
+      return false;
+    }
+    if (!includeArchived && goal.archived) {
+      return false;
+    }
+    return true;
+  });
+
+  return res.json({ items, count: items.length, date: today });
+});
+
 app.get("/api/goals/export", (req, res) => {
   const payload = JSON.stringify({ items: goals }, null, 2);
   res.setHeader("Content-Type", "application/json; charset=utf-8");
