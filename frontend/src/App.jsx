@@ -6,6 +6,8 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 function App() {
   const [health, setHealth] = useState("checking");
   const [goals, setGoals] = useState([]);
+  const [todayGoals, setTodayGoals] = useState([]);
+  const [todayDate, setTodayDate] = useState("");
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -73,8 +75,15 @@ function App() {
     setStats(data);
   }
 
+  async function loadTodayGoals() {
+    const response = await fetch(`${API_BASE}/api/goals/today?includeArchived=${includeArchived ? "true" : "false"}`);
+    const data = await response.json();
+    setTodayGoals(data.items ?? []);
+    setTodayDate(data.date ?? "");
+  }
+
   async function reloadData(filters = toQueryString()) {
-    await Promise.all([loadGoals(filters), loadStats(filters)]);
+    await Promise.all([loadGoals(filters), loadStats(filters), loadTodayGoals()]);
   }
 
   useEffect(() => {
@@ -393,6 +402,16 @@ function App() {
           Total: <strong>{stats.total}</strong> | Active: <strong>{stats.active}</strong> | Completed: <strong>{stats.completed}</strong> | Overdue:{" "}
           <strong>{stats.overdue || 0}</strong>
         </p>
+        <p className="stats">
+          Due Today ({todayDate || "n/a"}): <strong>{todayGoals.length}</strong>
+        </p>
+        {todayGoals.length > 0 ? (
+          <ul className="today-list">
+            {todayGoals.slice(0, 3).map((goal) => (
+              <li key={goal.id}>{goal.title}</li>
+            ))}
+          </ul>
+        ) : null}
         <div className="bulk-actions">
           <button type="button" onClick={handleCompleteAll}>
             Complete All Active

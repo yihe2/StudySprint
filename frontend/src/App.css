@@ -18,6 +18,12 @@ h1 {
   color: #374151;
 }
 
+.today-list {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+  color: #374151;
+}
+
 .bulk-actions {
   display: flex;
   gap: 0.5rem;
