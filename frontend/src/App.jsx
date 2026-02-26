@@ -8,6 +8,8 @@ function App() {
   const [goals, setGoals] = useState([]);
   const [todayGoals, setTodayGoals] = useState([]);
   const [todayDate, setTodayDate] = useState("");
+  const [upcomingGoals, setUpcomingGoals] = useState([]);
+  const [upcomingRange, setUpcomingRange] = useState({ from: "", to: "", days: 7 });
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -86,8 +88,17 @@ function App() {
     setTodayDate(data.date ?? "");
   }
 
+  async function loadUpcomingGoals() {
+    const response = await fetch(
+      `${API_BASE}/api/goals/upcoming?includeArchived=${includeArchived ? "true" : "false"}&days=7`,
+    );
+    const data = await response.json();
+    setUpcomingGoals(data.items ?? []);
+    setUpcomingRange({ from: data.from ?? "", to: data.to ?? "", days: data.days ?? 7 });
+  }
+
   async function reloadData(filters = toQueryString()) {
-    await Promise.all([loadGoals(filters), loadStats(filters), loadTodayGoals()]);
+    await Promise.all([loadGoals(filters), loadStats(filters), loadTodayGoals(), loadUpcomingGoals()]);
   }
 
   useEffect(() => {
@@ -435,6 +446,18 @@ function App() {
           <ul className="today-list">
             {todayGoals.slice(0, 3).map((goal) => (
               <li key={goal.id}>{goal.title}</li>
+            ))}
+          </ul>
+        ) : null}
+        <p className="stats">
+          Upcoming ({upcomingRange.from || "n/a"} to {upcomingRange.to || "n/a"}): <strong>{upcomingGoals.length}</strong>
+        </p>
+        {upcomingGoals.length > 0 ? (
+          <ul className="today-list">
+            {upcomingGoals.slice(0, 5).map((goal) => (
+              <li key={goal.id}>
+                {goal.title} ({goal.dueDate})
+              </li>
             ))}
           </ul>
         ) : null}
