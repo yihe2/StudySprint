@@ -196,6 +196,11 @@ button:disabled {
   border-color: #9ca3af;
 }
 
+.pill.pinned {
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+
 .danger {
   background: #991b1b;
 }

@@ -22,6 +22,7 @@ function App() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
   const [includeArchived, setIncludeArchived] = useState(false);
+  const [pinnedOnly, setPinnedOnly] = useState(false);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
@@ -45,6 +46,9 @@ function App() {
     }
     if (query.trim()) {
       params.set("q", query.trim());
+    }
+    if (pinnedOnly) {
+      params.set("pinned", "true");
     }
     params.set("includeArchived", includeArchived ? "true" : "false");
     params.set("sortBy", sortBy);
@@ -112,11 +116,11 @@ function App() {
     reloadData().catch(() => {
       setError("Failed to load goals.");
     });
-  }, [filterStatus, filterPriority, includeArchived, query, sortBy, sortOrder, page, pageSize]);
+  }, [filterStatus, filterPriority, includeArchived, pinnedOnly, query, sortBy, sortOrder, page, pageSize]);
 
   useEffect(() => {
     setPage(1);
-  }, [filterStatus, filterPriority, includeArchived, query, sortBy, sortOrder, pageSize]);
+  }, [filterStatus, filterPriority, includeArchived, pinnedOnly, query, sortBy, sortOrder, pageSize]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -169,6 +173,10 @@ function App() {
 
   function isArchived(goal) {
     return Boolean(goal.archived);
+  }
+
+  function isPinned(goal) {
+    return Boolean(goal.pinned);
   }
 
   async function handleToggleGoal(id) {
@@ -224,6 +232,24 @@ function App() {
       await reloadData();
     } catch (archiveError) {
       setError(archiveError.message);
+    }
+  }
+
+  async function handlePinGoal(id, pinned) {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/${id}/pin`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pinned }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update pin status.");
+      }
+      await reloadData();
+    } catch (pinError) {
+      setError(pinError.message);
     }
   }
 
@@ -504,6 +530,14 @@ function App() {
             />
             Show archived
           </label>
+          <label className="checkbox-inline">
+            <input
+              type="checkbox"
+              checked={pinnedOnly}
+              onChange={(e) => setPinnedOnly(e.target.checked)}
+            />
+            Pinned only
+          </label>
         </div>
         {goals.length === 0 ? (
           <p className="muted">No goals yet.</p>
@@ -530,6 +564,7 @@ function App() {
                         <span>{formatDueDate(goal.dueDate)}</span>
                         {isOverdue(goal) ? <span className="pill overdue">Overdue</span> : null}
                         {isArchived(goal) ? <span className="pill archived">Archived</span> : null}
+                        {isPinned(goal) ? <span className="pill pinned">Pinned</span> : null}
                       </p>
                     </>
                   )}
@@ -548,6 +583,9 @@ function App() {
                     <>
                       <button type="button" onClick={() => startEdit(goal)}>
                         Edit
+                      </button>
+                      <button type="button" onClick={() => handlePinGoal(goal.id, !isPinned(goal))}>
+                        {isPinned(goal) ? "Unpin" : "Pin"}
                       </button>
                       <button type="button" onClick={() => handleDuplicateTomorrow(goal.id)}>
                         Tomorrow
