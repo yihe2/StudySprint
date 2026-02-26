@@ -313,6 +313,33 @@ app.get("/api/goals/today", (req, res) => {
   return res.json({ items, count: items.length, date: today });
 });
 
+app.get("/api/goals/upcoming", (req, res) => {
+  const includeArchived = String(req.query.includeArchived).trim().toLowerCase() === "true";
+  const requestedDays = Number.parseInt(req.query.days, 10);
+  const days = Number.isFinite(requestedDays) && requestedDays > 0 && requestedDays <= 30 ? requestedDays : 7;
+  const today = new Date().toISOString().slice(0, 10);
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + days);
+  const end = endDate.toISOString().slice(0, 10);
+
+  const items = goals
+    .filter((goal) => {
+      if (!goal.dueDate) {
+        return false;
+      }
+      if (goal.completed) {
+        return false;
+      }
+      if (!includeArchived && goal.archived) {
+        return false;
+      }
+      return goal.dueDate >= today && goal.dueDate <= end;
+    })
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+
+  return res.json({ items, count: items.length, from: today, to: end, days });
+});
+
 app.get("/api/goals/export", (req, res) => {
   const payload = JSON.stringify({ items: goals }, null, 2);
   res.setHeader("Content-Type", "application/json; charset=utf-8");
