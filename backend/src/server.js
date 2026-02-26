@@ -37,6 +37,7 @@ function filterGoals(items, query) {
   const priority = typeof query.priority === "string" ? query.priority.trim().toLowerCase() : "";
   const q = typeof query.q === "string" ? query.q.trim().toLowerCase() : "";
   const includeArchived = String(query.includeArchived).trim().toLowerCase() === "true";
+  const pinnedFilter = typeof query.pinned === "string" ? query.pinned.trim().toLowerCase() : "";
   const today = new Date().toISOString().slice(0, 10);
 
   return items.filter((goal) => {
@@ -63,6 +64,12 @@ function filterGoals(items, query) {
       }
     }
     if (priority && priority !== "all" && goal.priority !== priority) {
+      return false;
+    }
+    if (pinnedFilter === "true" && !goal.pinned) {
+      return false;
+    }
+    if (pinnedFilter === "false" && goal.pinned) {
       return false;
     }
     if (q && !goal.title.toLowerCase().includes(q)) {
@@ -174,6 +181,13 @@ function validateListQuery(query) {
     }
   }
 
+  if (query.pinned !== undefined) {
+    const pinned = String(query.pinned).trim().toLowerCase();
+    if (pinned !== "true" && pinned !== "false") {
+      return "pinned must be true or false.";
+    }
+  }
+
   return null;
 }
 
@@ -183,6 +197,7 @@ function normalizeImportedGoal(raw, fallbackId) {
   const dueDate = parseDueDate(raw?.dueDate);
   const completed = Boolean(raw?.completed);
   const archived = Boolean(raw?.archived);
+  const pinned = Boolean(raw?.pinned);
   const id = Number.isFinite(Number(raw?.id)) && Number(raw.id) > 0 ? Number(raw.id) : fallbackId;
   const createdAt =
     typeof raw?.createdAt === "string" && !Number.isNaN(Date.parse(raw.createdAt))
@@ -193,7 +208,7 @@ function normalizeImportedGoal(raw, fallbackId) {
     return null;
   }
 
-  return { id, title, priority, dueDate, completed, archived, createdAt };
+  return { id, title, priority, dueDate, completed, archived, pinned, createdAt };
 }
 
 async function loadGoals() {
@@ -363,6 +378,7 @@ app.post("/api/goals", async (req, res) => {
     dueDate,
     completed: false,
     archived: false,
+    pinned: false,
     createdAt: new Date().toISOString(),
   };
 
@@ -416,6 +432,7 @@ app.patch("/api/goals/:id", async (req, res) => {
   const priority = req.body?.priority;
   const dueDate = req.body?.dueDate;
   const archived = req.body?.archived;
+  const pinned = req.body?.pinned;
 
   if (title !== undefined) {
     if (typeof title !== "string" || !title.trim()) {
@@ -447,6 +464,30 @@ app.patch("/api/goals/:id", async (req, res) => {
     goal.archived = archived;
   }
 
+  if (pinned !== undefined) {
+    if (typeof pinned !== "boolean") {
+      return res.status(400).json({ error: "pinned must be a boolean." });
+    }
+    goal.pinned = pinned;
+  }
+
+  await saveGoals();
+  return res.json({ item: goal });
+});
+
+app.patch("/api/goals/:id/pin", async (req, res) => {
+  const id = Number(req.params.id);
+  const goal = goals.find((item) => item.id === id);
+
+  if (!goal) {
+    return res.status(404).json({ error: "Goal not found." });
+  }
+
+  if (req.body?.pinned !== undefined && typeof req.body.pinned !== "boolean") {
+    return res.status(400).json({ error: "pinned must be a boolean." });
+  }
+
+  goal.pinned = req.body?.pinned ?? !goal.pinned;
   await saveGoals();
   return res.json({ item: goal });
 });
@@ -487,6 +528,7 @@ app.post("/api/goals/:id/duplicate-tomorrow", async (req, res) => {
     dueDate,
     completed: false,
     archived: false,
+    pinned: false,
     createdAt: new Date().toISOString(),
   };
 
