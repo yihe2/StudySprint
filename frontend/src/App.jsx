@@ -340,6 +340,22 @@ function App() {
     }
   }
 
+  async function handleCompleteToday() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/complete-today`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to complete today's goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handleClearCompleted() {
     setError("");
     try {
@@ -464,6 +480,9 @@ function App() {
         <div className="bulk-actions">
           <button type="button" onClick={handleCompleteAll}>
             Complete All Active
+          </button>
+          <button type="button" onClick={handleCompleteToday}>
+            Complete Today
           </button>
           <button type="button" className="danger" onClick={handleClearCompleted}>
             Clear Completed
