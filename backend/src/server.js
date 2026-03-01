@@ -460,6 +460,18 @@ app.patch("/api/goals/actions/archive-completed", async (req, res) => {
   return res.json({ updated });
 });
 
+app.patch("/api/goals/actions/unarchive-all", async (req, res) => {
+  let updated = 0;
+  for (const goal of goals) {
+    if (goal.archived) {
+      goal.archived = false;
+      updated += 1;
+    }
+  }
+  await saveGoals();
+  return res.json({ updated });
+});
+
 app.patch("/api/goals/:id", async (req, res) => {
   const id = Number(req.params.id);
   const goal = goals.find((item) => item.id === id);
