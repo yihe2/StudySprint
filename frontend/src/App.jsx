@@ -280,6 +280,24 @@ function App() {
     }
   }
 
+  async function handleSnoozeGoal(id) {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/${id}/snooze`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ days: 1 }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to snooze goal.");
+      }
+      await reloadData();
+    } catch (snoozeError) {
+      setError(snoozeError.message);
+    }
+  }
+
   function startEdit(goal) {
     setEditingGoalId(goal.id);
     setEditTitle(goal.title);
@@ -650,6 +668,9 @@ function App() {
                       </button>
                       <button type="button" onClick={() => handleDuplicateTomorrow(goal.id)}>
                         Tomorrow
+                      </button>
+                      <button type="button" onClick={() => handleSnoozeGoal(goal.id)}>
+                        Snooze +1d
                       </button>
                       <button type="button" onClick={() => handleArchiveGoal(goal.id, !isArchived(goal))}>
                         {isArchived(goal) ? "Unarchive" : "Archive"}
