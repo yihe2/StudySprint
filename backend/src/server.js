@@ -589,6 +589,25 @@ app.post("/api/goals/:id/duplicate-tomorrow", async (req, res) => {
   return res.status(201).json({ item: goal });
 });
 
+app.patch("/api/goals/:id/snooze", async (req, res) => {
+  const id = Number(req.params.id);
+  const goal = goals.find((item) => item.id === id);
+
+  if (!goal) {
+    return res.status(404).json({ error: "Goal not found." });
+  }
+
+  const requestedDays = Number.parseInt(req.body?.days, 10);
+  const days = Number.isFinite(requestedDays) && requestedDays >= 1 && requestedDays <= 30 ? requestedDays : 1;
+
+  const base = goal.dueDate ? new Date(`${goal.dueDate}T00:00:00`) : new Date();
+  base.setDate(base.getDate() + days);
+  goal.dueDate = base.toISOString().slice(0, 10);
+
+  await saveGoals();
+  return res.json({ item: goal, days });
+});
+
 app.patch("/api/goals/:id/toggle", async (req, res) => {
   const id = Number(req.params.id);
   const goal = goals.find((item) => item.id === id);
