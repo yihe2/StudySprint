@@ -422,6 +422,22 @@ function App() {
     }
   }
 
+  async function handleSnoozeOverdue() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/snooze-overdue`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to snooze overdue goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handleExportGoals() {
     setError("");
     try {
@@ -526,6 +542,9 @@ function App() {
           </button>
           <button type="button" onClick={handleUnarchiveAll}>
             Unarchive All
+          </button>
+          <button type="button" onClick={handleSnoozeOverdue}>
+            Snooze Overdue +1d
           </button>
           <button type="button" onClick={handleExportGoals}>
             Export JSON
