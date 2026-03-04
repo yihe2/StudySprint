@@ -426,6 +426,17 @@ app.patch("/api/goals/actions/complete-all", async (req, res) => {
   return res.json({ updated });
 });
 
+app.patch("/api/goals/actions/activate-all", async (req, res) => {
+  let updated = 0;
+  for (const goal of goals) {
+    if (!goal.archived && goal.completed) {
+      goal.completed = false;
+      updated += 1;
+    }
+  }
+  await saveGoals();
+  return res.json({ updated });
+});
 app.patch("/api/goals/actions/complete-today", async (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   let updated = 0;
@@ -658,3 +669,4 @@ await loadGoals();
 app.listen(port, () => {
   console.log(`API listening on port ${port}`);
 });
+
