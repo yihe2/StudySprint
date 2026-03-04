@@ -358,6 +358,21 @@ function App() {
     }
   }
 
+  async function handleActivateAll() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/activate-all`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to activate goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
   async function handleCompleteToday() {
     setError("");
     try {
@@ -531,7 +546,9 @@ function App() {
           <button type="button" onClick={handleCompleteAll}>
             Complete All Active
           </button>
-          <button type="button" onClick={handleCompleteToday}>
+          <button type="button" onClick={handleActivateAll}>
+            Activate All
+          </button>          <button type="button" onClick={handleCompleteToday}>
             Complete Today
           </button>
           <button type="button" className="danger" onClick={handleClearCompleted}>
@@ -728,3 +745,4 @@ function App() {
 }
 
 export default App;
+
