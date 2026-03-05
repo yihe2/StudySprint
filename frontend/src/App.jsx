@@ -436,6 +436,21 @@ function App() {
     }
   }
 
+  async function handleArchiveOverdue() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/archive-overdue`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to archive overdue goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
   async function handleUnarchiveAll() {
     setError("");
     try {
@@ -563,7 +578,8 @@ function App() {
           </button>
           <button type="button" onClick={handleActivateAll}>
             Activate All
-          </button>          <button type="button" onClick={handleCompleteToday}>
+          </button>
+          <button type="button" onClick={handleCompleteToday}>
             Complete Today
           </button>
           <button type="button" className="danger" onClick={handleClearCompleted}>
@@ -571,7 +587,11 @@ function App() {
           </button>
           <button type="button" onClick={handleArchiveCompleted}>
             Archive Completed
-          </button>          <button type="button" className="danger" onClick={handleClearArchived}>
+          </button>
+          <button type="button" onClick={handleArchiveOverdue}>
+            Archive Overdue
+          </button>
+          <button type="button" className="danger" onClick={handleClearArchived}>
             Clear Archived
           </button>
           <button type="button" onClick={handleUnarchiveAll}>
@@ -762,5 +782,6 @@ function App() {
 }
 
 export default App;
+
 
 
