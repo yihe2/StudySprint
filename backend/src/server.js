@@ -459,6 +459,14 @@ app.delete("/api/goals/actions/clear-completed", async (req, res) => {
   return res.json({ deleted });
 });
 
+app.delete("/api/goals/actions/clear-archived", async (req, res) => {
+  const before = goals.length;
+  const remaining = goals.filter((goal) => !goal.archived);
+  goals.splice(0, goals.length, ...remaining);
+  const deleted = before - goals.length;
+  await saveGoals();
+  return res.json({ deleted });
+});
 app.patch("/api/goals/actions/archive-completed", async (req, res) => {
   let updated = 0;
   for (const goal of goals) {
@@ -669,4 +677,5 @@ await loadGoals();
 app.listen(port, () => {
   console.log(`API listening on port ${port}`);
 });
+
 
