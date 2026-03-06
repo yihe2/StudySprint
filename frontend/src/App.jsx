@@ -451,6 +451,23 @@ function App() {
       setError(bulkError.message);
     }
   }
+
+  async function handleUnpinAll() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/unpin-all`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to unpin goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handleUnarchiveAll() {
     setError("");
     try {
@@ -596,6 +613,9 @@ function App() {
           </button>
           <button type="button" onClick={handleUnarchiveAll}>
             Unarchive All
+          </button>
+          <button type="button" onClick={handleUnpinAll}>
+            Unpin All
           </button>
           <button type="button" onClick={handleSnoozeOverdue}>
             Snooze Overdue +1d
