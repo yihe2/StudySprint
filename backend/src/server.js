@@ -491,6 +491,18 @@ app.patch("/api/goals/actions/unarchive-all", async (req, res) => {
   return res.json({ updated });
 });
 
+app.patch("/api/goals/actions/unpin-all", async (req, res) => {
+  let updated = 0;
+  for (const goal of goals) {
+    if (goal.pinned) {
+      goal.pinned = false;
+      updated += 1;
+    }
+  }
+  await saveGoals();
+  return res.json({ updated });
+});
+
 app.patch("/api/goals/actions/archive-overdue", async (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   let updated = 0;
