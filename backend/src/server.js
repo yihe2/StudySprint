@@ -279,6 +279,7 @@ app.get("/api/goals/stats", (req, res) => {
   const active = total - completed;
   const today = new Date().toISOString().slice(0, 10);
   const overdue = items.filter((goal) => Boolean(goal.dueDate) && goal.dueDate < today && !goal.completed).length;
+  const pinned = items.filter((goal) => goal.pinned).length;
   const byPriority = {
     low: items.filter((goal) => goal.priority === "low").length,
     medium: items.filter((goal) => goal.priority === "medium").length,
@@ -290,6 +291,7 @@ app.get("/api/goals/stats", (req, res) => {
     active,
     completed,
     overdue,
+    pinned,
     byPriority,
   });
 });
