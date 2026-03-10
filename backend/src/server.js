@@ -491,6 +491,19 @@ app.patch("/api/goals/actions/unarchive-all", async (req, res) => {
   return res.json({ updated });
 });
 
+app.patch("/api/goals/actions/pin-all", async (req, res) => {
+  let updated = 0;
+  for (const goal of goals) {
+    if (goal.archived || goal.pinned) {
+      continue;
+    }
+    goal.pinned = true;
+    updated += 1;
+  }
+  await saveGoals();
+  return res.json({ updated });
+});
+
 app.patch("/api/goals/actions/unpin-all", async (req, res) => {
   let updated = 0;
   for (const goal of goals) {
