@@ -452,6 +452,22 @@ function App() {
     }
   }
 
+  async function handlePinAll() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/pin-all`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to pin goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handleUnpinAll() {
     setError("");
     try {
@@ -613,6 +629,9 @@ function App() {
           </button>
           <button type="button" onClick={handleUnarchiveAll}>
             Unarchive All
+          </button>
+          <button type="button" onClick={handlePinAll}>
+            Pin All
           </button>
           <button type="button" onClick={handleUnpinAll}>
             Unpin All
