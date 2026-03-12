@@ -518,6 +518,27 @@ app.patch("/api/goals/actions/unpin-all", async (req, res) => {
   return res.json({ updated });
 });
 
+app.delete("/api/goals/actions/clear-overdue", async (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const before = goals.length;
+  const remaining = goals.filter((goal) => {
+    if (goal.completed) {
+      return true;
+    }
+    if (goal.archived) {
+      return true;
+    }
+    if (!goal.dueDate) {
+      return true;
+    }
+    return goal.dueDate >= today;
+  });
+  goals.splice(0, goals.length, ...remaining);
+  const deleted = before - goals.length;
+  await saveGoals();
+  return res.json({ deleted, date: today });
+});
+
 app.patch("/api/goals/actions/archive-overdue", async (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   let updated = 0;
