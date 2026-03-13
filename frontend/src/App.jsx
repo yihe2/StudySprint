@@ -437,6 +437,22 @@ function App() {
     }
   }
 
+  async function handleCompleteOverdue() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/complete-overdue`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to complete overdue goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handleArchiveOverdue() {
     setError("");
     try {
@@ -621,6 +637,9 @@ function App() {
           </button>
           <button type="button" onClick={handleArchiveCompleted}>
             Archive Completed
+          </button>
+          <button type="button" onClick={handleCompleteOverdue}>
+            Complete Overdue
           </button>
           <button type="button" onClick={handleArchiveOverdue}>
             Archive Overdue
