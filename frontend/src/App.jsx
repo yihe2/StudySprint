@@ -421,6 +421,23 @@ function App() {
       setError(bulkError.message);
     }
   }
+
+  async function handleClearOverdue() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/clear-overdue`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to clear overdue goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handleArchiveCompleted() {
     setError("");
     try {
@@ -640,6 +657,9 @@ function App() {
           </button>
           <button type="button" onClick={handleCompleteOverdue}>
             Complete Overdue
+          </button>
+          <button type="button" className="danger" onClick={handleClearOverdue}>
+            Clear Overdue
           </button>
           <button type="button" onClick={handleArchiveOverdue}>
             Archive Overdue
