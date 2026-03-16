@@ -484,6 +484,24 @@ app.patch("/api/goals/actions/archive-today", async (req, res) => {
   return res.json({ updated, date: today });
 });
 
+app.delete("/api/goals/actions/clear-today", async (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const before = goals.length;
+  const remaining = goals.filter((goal) => {
+    if (goal.archived) {
+      return true;
+    }
+    if (goal.completed) {
+      return true;
+    }
+    return goal.dueDate !== today;
+  });
+  goals.splice(0, goals.length, ...remaining);
+  const deleted = before - goals.length;
+  await saveGoals();
+  return res.json({ deleted, date: today });
+});
+
 app.delete("/api/goals/actions/clear-completed", async (req, res) => {
   const before = goals.length;
   const remaining = goals.filter((goal) => !goal.completed);
