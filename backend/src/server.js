@@ -452,6 +452,19 @@ app.patch("/api/goals/actions/complete-today", async (req, res) => {
   return res.json({ updated, date: today });
 });
 
+app.patch("/api/goals/actions/activate-today", async (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  let updated = 0;
+  for (const goal of goals) {
+    if (goal.dueDate === today && goal.completed && !goal.archived) {
+      goal.completed = false;
+      updated += 1;
+    }
+  }
+  await saveGoals();
+  return res.json({ updated, date: today });
+});
+
 app.patch("/api/goals/actions/snooze-today", async (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   let updated = 0;
