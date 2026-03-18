@@ -390,6 +390,22 @@ function App() {
     }
   }
 
+  async function handleActivateToday() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/activate-today`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to activate today's goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handleSnoozeToday() {
     setError("");
     try {
@@ -696,6 +712,9 @@ function App() {
           </button>
           <button type="button" onClick={handleCompleteToday}>
             Complete Today
+          </button>
+          <button type="button" onClick={handleActivateToday}>
+            Activate Today
           </button>
           <button type="button" onClick={handleSnoozeToday}>
             Snooze Today +1d
