@@ -454,6 +454,22 @@ function App() {
     }
   }
 
+  async function handleUnpinToday() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/unpin-today`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to unpin today's goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handleClearToday() {
     setError("");
     try {
@@ -740,6 +756,9 @@ function App() {
           </button>
           <button type="button" onClick={handlePinToday}>
             Pin Today
+          </button>
+          <button type="button" onClick={handleUnpinToday}>
+            Unpin Today
           </button>
           <button type="button" className="danger" onClick={handleClearToday}>
             Clear Today
