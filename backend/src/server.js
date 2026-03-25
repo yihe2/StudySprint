@@ -510,6 +510,19 @@ app.patch("/api/goals/actions/pin-today", async (req, res) => {
   return res.json({ updated, date: today });
 });
 
+app.patch("/api/goals/actions/unpin-today", async (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  let updated = 0;
+  for (const goal of goals) {
+    if (goal.dueDate === today && goal.pinned) {
+      goal.pinned = false;
+      updated += 1;
+    }
+  }
+  await saveGoals();
+  return res.json({ updated, date: today });
+});
+
 app.delete("/api/goals/actions/clear-today", async (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   const before = goals.length;
