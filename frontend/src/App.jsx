@@ -472,6 +472,9 @@ function App() {
 
   async function handleClearToday() {
     setError("");
+    if (!window.confirm("Clear all uncompleted goals due today?")) {
+      return;
+    }
     try {
       const response = await fetch(`${API_BASE}/api/goals/actions/clear-today`, {
         method: "DELETE",
@@ -504,6 +507,9 @@ function App() {
 
   async function handleClearArchived() {
     setError("");
+    if (!window.confirm("Clear all archived goals?")) {
+      return;
+    }
     try {
       const response = await fetch(`${API_BASE}/api/goals/actions/clear-archived`, {
         method: "DELETE",
@@ -520,6 +526,9 @@ function App() {
 
   async function handleClearOverdue() {
     setError("");
+    if (!window.confirm("Clear all overdue, uncompleted goals?")) {
+      return;
+    }
     try {
       const response = await fetch(`${API_BASE}/api/goals/actions/clear-overdue`, {
         method: "DELETE",
