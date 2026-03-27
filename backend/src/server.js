@@ -607,6 +607,24 @@ app.patch("/api/goals/actions/unpin-all", async (req, res) => {
   return res.json({ updated });
 });
 
+app.patch("/api/goals/actions/pin-overdue", async (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  let updated = 0;
+
+  for (const goal of goals) {
+    const isOverdue = Boolean(goal.dueDate) && goal.dueDate < today && !goal.completed && !goal.archived;
+    if (!isOverdue || goal.pinned) {
+      continue;
+    }
+
+    goal.pinned = true;
+    updated += 1;
+  }
+
+  await saveGoals();
+  return res.json({ updated, date: today });
+});
+
 app.delete("/api/goals/actions/clear-overdue", async (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   const before = goals.length;
