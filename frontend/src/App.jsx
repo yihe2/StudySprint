@@ -491,6 +491,9 @@ function App() {
 
   async function handleClearCompleted() {
     setError("");
+    if (!window.confirm("Clear all completed goals?")) {
+      return;
+    }
     try {
       const response = await fetch(`${API_BASE}/api/goals/actions/clear-completed`, {
         method: "DELETE",
