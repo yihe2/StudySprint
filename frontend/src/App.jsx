@@ -642,6 +642,22 @@ function App() {
     }
   }
 
+  async function handleUnpinOverdue() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/unpin-overdue`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to unpin overdue goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handleUnarchiveAll() {
     setError("");
     try {
@@ -802,6 +818,9 @@ function App() {
           </button>
           <button type="button" onClick={handlePinOverdue}>
             Pin Overdue
+          </button>
+          <button type="button" onClick={handleUnpinOverdue}>
+            Unpin Overdue
           </button>
           <button type="button" className="danger" onClick={handleClearOverdue}>
             Clear Overdue
