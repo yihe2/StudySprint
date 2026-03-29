@@ -209,6 +209,9 @@ function App() {
 
   async function handleDeleteGoal(id) {
     setError("");
+    if (!window.confirm("Delete this goal?")) {
+      return;
+    }
     try {
       const response = await fetch(`${API_BASE}/api/goals/${id}`, {
         method: "DELETE",
