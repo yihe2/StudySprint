@@ -699,6 +699,25 @@ app.patch("/api/goals/actions/archive-overdue", async (req, res) => {
   await saveGoals();
   return res.json({ updated, date: today });
 });
+
+app.patch("/api/goals/actions/unarchive-overdue", async (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  let updated = 0;
+
+  for (const goal of goals) {
+    const isOverdue = Boolean(goal.dueDate) && goal.dueDate < today && !goal.completed;
+    if (!isOverdue || !goal.archived) {
+      continue;
+    }
+
+    goal.archived = false;
+    updated += 1;
+  }
+
+  await saveGoals();
+  return res.json({ updated, date: today });
+});
+
 app.patch("/api/goals/actions/snooze-overdue", async (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   let updated = 0;
