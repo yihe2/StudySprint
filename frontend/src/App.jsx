@@ -597,6 +597,22 @@ function App() {
     }
   }
 
+  async function handleUnarchiveOverdue() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/unarchive-overdue`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to unarchive overdue goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handlePinAll() {
     setError("");
     try {
@@ -830,6 +846,9 @@ function App() {
           </button>
           <button type="button" onClick={handleArchiveOverdue}>
             Archive Overdue
+          </button>
+          <button type="button" onClick={handleUnarchiveOverdue}>
+            Unarchive Overdue
           </button>
           <button type="button" className="danger" onClick={handleClearArchived}>
             Clear Archived
