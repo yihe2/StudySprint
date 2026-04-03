@@ -743,6 +743,9 @@ function App() {
       if (!items) {
         throw new Error("Import file must contain an items array.");
       }
+      if (importMode === "replace" && !window.confirm("Replace all current goals with the imported file?")) {
+        return;
+      }
 
       const response = await fetch(`${API_BASE}/api/goals/import`, {
         method: "POST",
