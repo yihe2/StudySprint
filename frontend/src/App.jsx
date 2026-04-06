@@ -780,6 +780,10 @@ function App() {
     }
   }
 
+  const hasTodayGoals = todayGoals.length > 0;
+  const hasPinnedTodayGoals = todayGoals.some((goal) => goal.pinned);
+  const hasUnpinnedTodayGoals = todayGoals.some((goal) => !goal.pinned);
+
   return (
     <main className="app">
       <header>
@@ -824,25 +828,25 @@ function App() {
           <button type="button" onClick={handleActivateAll}>
             Activate All
           </button>
-          <button type="button" onClick={handleCompleteToday}>
+          <button type="button" onClick={handleCompleteToday} disabled={!hasTodayGoals}>
             Complete Today
           </button>
           <button type="button" onClick={handleActivateToday}>
             Activate Today
           </button>
-          <button type="button" onClick={handleSnoozeToday}>
+          <button type="button" onClick={handleSnoozeToday} disabled={!hasTodayGoals}>
             Snooze Today +1d
           </button>
-          <button type="button" onClick={handleArchiveToday}>
+          <button type="button" onClick={handleArchiveToday} disabled={!hasTodayGoals}>
             Archive Today
           </button>
-          <button type="button" onClick={handlePinToday}>
+          <button type="button" onClick={handlePinToday} disabled={!hasUnpinnedTodayGoals}>
             Pin Today
           </button>
-          <button type="button" onClick={handleUnpinToday}>
+          <button type="button" onClick={handleUnpinToday} disabled={!hasPinnedTodayGoals}>
             Unpin Today
           </button>
-          <button type="button" className="danger" onClick={handleClearToday}>
+          <button type="button" className="danger" onClick={handleClearToday} disabled={!hasTodayGoals}>
             Clear Today
           </button>
           <button type="button" className="danger" onClick={handleClearCompleted}>
