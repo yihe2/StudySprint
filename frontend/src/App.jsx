@@ -441,6 +441,22 @@ function App() {
     }
   }
 
+  async function handleUnarchiveToday() {
+    setError("");
+    try {
+      const response = await fetch(`${API_BASE}/api/goals/actions/unarchive-today`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to unarchive today's goals.");
+      }
+      await reloadData();
+    } catch (bulkError) {
+      setError(bulkError.message);
+    }
+  }
+
   async function handlePinToday() {
     setError("");
     try {
@@ -839,6 +855,9 @@ function App() {
           </button>
           <button type="button" onClick={handleArchiveToday} disabled={!hasTodayGoals}>
             Archive Today
+          </button>
+          <button type="button" onClick={handleUnarchiveToday}>
+            Unarchive Today
           </button>
           <button type="button" onClick={handlePinToday} disabled={!hasUnpinnedTodayGoals}>
             Pin Today
