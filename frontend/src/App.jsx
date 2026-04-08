@@ -348,6 +348,9 @@ function App() {
 
   async function handleCompleteAll() {
     setError("");
+    if (!window.confirm("Mark all active goals as completed?")) {
+      return;
+    }
     try {
       const response = await fetch(`${API_BASE}/api/goals/actions/complete-all`, {
         method: "PATCH",
@@ -364,6 +367,9 @@ function App() {
 
   async function handleActivateAll() {
     setError("");
+    if (!window.confirm("Reopen all completed goals that are still visible in the list?")) {
+      return;
+    }
     try {
       const response = await fetch(`${API_BASE}/api/goals/actions/activate-all`, {
         method: "PATCH",
