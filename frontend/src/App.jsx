@@ -15,7 +15,9 @@ function App() {
     active: 0,
     completed: 0,
     overdue: 0,
+    archived: 0,
     pinned: 0,
+    completionRate: 0,
     byPriority: { low: 0, medium: 0, high: 0 },
   });
   const [meta, setMeta] = useState({ page: 1, pageSize: 10, totalItems: 0, totalPages: 1 });
@@ -819,7 +821,10 @@ function App() {
         <h2>Overview</h2>
         <p className="stats">
           Total: <strong>{stats.total}</strong> | Active: <strong>{stats.active}</strong> | Completed: <strong>{stats.completed}</strong> | Overdue:{" "}
-          <strong>{stats.overdue || 0}</strong> | Pinned: <strong>{stats.pinned || 0}</strong>
+          <strong>{stats.overdue || 0}</strong> | Archived: <strong>{stats.archived || 0}</strong> | Pinned: <strong>{stats.pinned || 0}</strong>
+        </p>
+        <p className="stats">
+          Completion Rate: <strong>{stats.completionRate || 0}%</strong>
         </p>
         <p className="stats">
           Due Today ({todayDate || "n/a"}): <strong>{todayGoals.length}</strong>
