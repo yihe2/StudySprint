@@ -276,10 +276,12 @@ app.get("/api/goals/stats", (req, res) => {
   const items = sortGoals(filtered, req.query);
   const total = items.length;
   const completed = items.filter((goal) => goal.completed).length;
+  const archived = items.filter((goal) => goal.archived).length;
   const active = total - completed;
   const today = new Date().toISOString().slice(0, 10);
   const overdue = items.filter((goal) => Boolean(goal.dueDate) && goal.dueDate < today && !goal.completed).length;
   const pinned = items.filter((goal) => goal.pinned).length;
+  const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
   const byPriority = {
     low: items.filter((goal) => goal.priority === "low").length,
     medium: items.filter((goal) => goal.priority === "medium").length,
@@ -291,7 +293,9 @@ app.get("/api/goals/stats", (req, res) => {
     active,
     completed,
     overdue,
+    archived,
     pinned,
+    completionRate,
     byPriority,
   });
 });
