@@ -837,6 +837,10 @@ function App() {
           Due in Next 7 Days: <strong>{stats.dueThisWeek || 0}</strong> | Undated Active: <strong>{stats.undatedActive || 0}</strong>
         </p>
         <p className="stats">
+          Priority Mix: <strong>{stats.byPriority.high || 0}</strong> high | <strong>{stats.byPriority.medium || 0}</strong> medium |{" "}
+          <strong>{stats.byPriority.low || 0}</strong> low
+        </p>
+        <p className="stats">
           Due Today ({todayDate || "n/a"}): <strong>{todayGoals.length}</strong>
         </p>
         {todayGoals.length > 0 ? (
