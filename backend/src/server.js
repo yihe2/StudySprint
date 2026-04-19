@@ -287,8 +287,13 @@ app.get("/api/goals/stats", (req, res) => {
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
   const dueGoals = items.filter((goal) => Boolean(goal.dueDate)).length;
   const onTimeCompleted = items.filter((goal) => goal.completed && (!goal.dueDate || goal.dueDate >= today)).length;
+  const dueTodayTotal = items.filter((goal) => goal.dueDate === today).length;
+  const completedDueToday = items.filter((goal) => goal.dueDate === today && goal.completed).length;
   const dueThisWeek = items.filter(
     (goal) => Boolean(goal.dueDate) && goal.dueDate >= today && goal.dueDate <= weekAheadDate && !goal.completed && !goal.archived,
+  ).length;
+  const completedDueThisWeek = items.filter(
+    (goal) => Boolean(goal.dueDate) && goal.dueDate >= today && goal.dueDate <= weekAheadDate && goal.completed,
   ).length;
   const undatedActive = items.filter((goal) => !goal.dueDate && !goal.completed && !goal.archived).length;
   const byPriority = {
@@ -307,7 +312,10 @@ app.get("/api/goals/stats", (req, res) => {
     completionRate,
     dueGoals,
     onTimeCompleted,
+    dueTodayTotal,
+    completedDueToday,
     dueThisWeek,
+    completedDueThisWeek,
     undatedActive,
     byPriority,
   });
