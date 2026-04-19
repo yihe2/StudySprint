@@ -20,7 +20,10 @@ function App() {
     completionRate: 0,
     dueGoals: 0,
     onTimeCompleted: 0,
+    dueTodayTotal: 0,
+    completedDueToday: 0,
     dueThisWeek: 0,
+    completedDueThisWeek: 0,
     undatedActive: 0,
     byPriority: { low: 0, medium: 0, high: 0 },
   });
@@ -835,6 +838,10 @@ function App() {
         </p>
         <p className="stats">
           Due in Next 7 Days: <strong>{stats.dueThisWeek || 0}</strong> | Undated Active: <strong>{stats.undatedActive || 0}</strong>
+        </p>
+        <p className="stats">
+          Due-Date Snapshot: <strong>{stats.completedDueToday || 0}</strong> of <strong>{stats.dueTodayTotal || 0}</strong> due today completed |{" "}
+          <strong>{stats.completedDueThisWeek || 0}</strong> due this week completed
         </p>
         <p className="stats">
           Priority Mix: <strong>{stats.byPriority.high || 0}</strong> high | <strong>{stats.byPriority.medium || 0}</strong> medium |{" "}
