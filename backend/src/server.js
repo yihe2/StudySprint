@@ -296,6 +296,16 @@ app.get("/api/goals/stats", (req, res) => {
     (goal) => Boolean(goal.dueDate) && goal.dueDate >= today && goal.dueDate <= weekAheadDate && goal.completed,
   ).length;
   const undatedActive = items.filter((goal) => !goal.dueDate && !goal.completed && !goal.archived).length;
+  const highPriorityActive = items.filter((goal) => goal.priority === "high" && !goal.completed && !goal.archived).length;
+  const highPriorityDueThisWeek = items.filter(
+    (goal) =>
+      goal.priority === "high" &&
+      Boolean(goal.dueDate) &&
+      goal.dueDate >= today &&
+      goal.dueDate <= weekAheadDate &&
+      !goal.completed &&
+      !goal.archived,
+  ).length;
   const byPriority = {
     low: items.filter((goal) => goal.priority === "low").length,
     medium: items.filter((goal) => goal.priority === "medium").length,
@@ -317,6 +327,8 @@ app.get("/api/goals/stats", (req, res) => {
     dueThisWeek,
     completedDueThisWeek,
     undatedActive,
+    highPriorityActive,
+    highPriorityDueThisWeek,
     byPriority,
   });
 });
