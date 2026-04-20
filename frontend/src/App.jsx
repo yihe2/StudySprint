@@ -25,6 +25,8 @@ function App() {
     dueThisWeek: 0,
     completedDueThisWeek: 0,
     undatedActive: 0,
+    highPriorityActive: 0,
+    highPriorityDueThisWeek: 0,
     byPriority: { low: 0, medium: 0, high: 0 },
   });
   const [meta, setMeta] = useState({ page: 1, pageSize: 10, totalItems: 0, totalPages: 1 });
@@ -842,6 +844,9 @@ function App() {
         <p className="stats">
           Due-Date Snapshot: <strong>{stats.completedDueToday || 0}</strong> of <strong>{stats.dueTodayTotal || 0}</strong> due today completed |{" "}
           <strong>{stats.completedDueThisWeek || 0}</strong> due this week completed
+        </p>
+        <p className="stats">
+          High-Priority Workload: <strong>{stats.highPriorityActive || 0}</strong> active | <strong>{stats.highPriorityDueThisWeek || 0}</strong> due this week
         </p>
         <p className="stats">
           Priority Mix: <strong>{stats.byPriority.high || 0}</strong> high | <strong>{stats.byPriority.medium || 0}</strong> medium |{" "}
