@@ -279,9 +279,15 @@ app.get("/api/goals/stats", (req, res) => {
   const archived = items.filter((goal) => goal.archived).length;
   const active = total - completed;
   const today = new Date().toISOString().slice(0, 10);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDate = tomorrow.toISOString().slice(0, 10);
   const weekAhead = new Date();
   weekAhead.setDate(weekAhead.getDate() + 7);
   const weekAheadDate = weekAhead.toISOString().slice(0, 10);
+  const staleThreshold = new Date();
+  staleThreshold.setDate(staleThreshold.getDate() - 7);
+  const staleThresholdDate = staleThreshold.toISOString().slice(0, 10);
   const overdue = items.filter((goal) => Boolean(goal.dueDate) && goal.dueDate < today && !goal.completed).length;
   const pinned = items.filter((goal) => goal.pinned).length;
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -294,6 +300,10 @@ app.get("/api/goals/stats", (req, res) => {
   ).length;
   const completedDueThisWeek = items.filter(
     (goal) => Boolean(goal.dueDate) && goal.dueDate >= today && goal.dueDate <= weekAheadDate && goal.completed,
+  ).length;
+  const dueTomorrow = items.filter((goal) => goal.dueDate === tomorrowDate && !goal.completed && !goal.archived).length;
+  const staleOverdue = items.filter(
+    (goal) => Boolean(goal.dueDate) && goal.dueDate < staleThresholdDate && !goal.completed && !goal.archived,
   ).length;
   const undatedActive = items.filter((goal) => !goal.dueDate && !goal.completed && !goal.archived).length;
   const highPriorityActive = items.filter((goal) => goal.priority === "high" && !goal.completed && !goal.archived).length;
@@ -326,6 +336,8 @@ app.get("/api/goals/stats", (req, res) => {
     completedDueToday,
     dueThisWeek,
     completedDueThisWeek,
+    dueTomorrow,
+    staleOverdue,
     undatedActive,
     highPriorityActive,
     highPriorityDueThisWeek,
