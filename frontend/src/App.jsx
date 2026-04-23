@@ -24,6 +24,8 @@ function App() {
     completedDueToday: 0,
     dueThisWeek: 0,
     completedDueThisWeek: 0,
+    dueTomorrow: 0,
+    staleOverdue: 0,
     undatedActive: 0,
     highPriorityActive: 0,
     highPriorityDueThisWeek: 0,
@@ -840,6 +842,9 @@ function App() {
         </p>
         <p className="stats">
           Due in Next 7 Days: <strong>{stats.dueThisWeek || 0}</strong> | Undated Active: <strong>{stats.undatedActive || 0}</strong>
+        </p>
+        <p className="stats">
+          Next Up: <strong>{stats.dueTomorrow || 0}</strong> due tomorrow | <strong>{stats.staleOverdue || 0}</strong> stale overdue
         </p>
         <p className="stats">
           Due-Date Snapshot: <strong>{stats.completedDueToday || 0}</strong> of <strong>{stats.dueTodayTotal || 0}</strong> due today completed |{" "}
