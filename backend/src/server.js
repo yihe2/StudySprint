@@ -306,6 +306,9 @@ app.get("/api/goals/stats", (req, res) => {
     (goal) => Boolean(goal.dueDate) && goal.dueDate < staleThresholdDate && !goal.completed && !goal.archived,
   ).length;
   const undatedActive = items.filter((goal) => !goal.dueDate && !goal.completed && !goal.archived).length;
+  const highPriorityUndated = items.filter(
+    (goal) => goal.priority === "high" && !goal.dueDate && !goal.completed && !goal.archived,
+  ).length;
   const highPriorityActive = items.filter((goal) => goal.priority === "high" && !goal.completed && !goal.archived).length;
   const highPriorityDueThisWeek = items.filter(
     (goal) =>
@@ -339,6 +342,7 @@ app.get("/api/goals/stats", (req, res) => {
     dueTomorrow,
     staleOverdue,
     undatedActive,
+    highPriorityUndated,
     highPriorityActive,
     highPriorityDueThisWeek,
     byPriority,
