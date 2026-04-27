@@ -18,6 +18,7 @@ function App() {
     archived: 0,
     pinned: 0,
     completionRate: 0,
+    archivedRate: 0,
     dueGoals: 0,
     onTimeCompleted: 0,
     dueTodayTotal: 0,
@@ -837,6 +838,9 @@ function App() {
         </p>
         <p className="stats">
           Completion Rate: <strong>{stats.completionRate || 0}%</strong>
+        </p>
+        <p className="stats">
+          Archive Share: <strong>{stats.archivedRate || 0}%</strong> of listed goals archived
         </p>
         <p className="stats">
           On-Time Completed: <strong>{stats.onTimeCompleted || 0}</strong> of <strong>{stats.dueGoals || 0}</strong> dated goals
