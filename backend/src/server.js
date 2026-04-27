@@ -291,6 +291,7 @@ app.get("/api/goals/stats", (req, res) => {
   const overdue = items.filter((goal) => Boolean(goal.dueDate) && goal.dueDate < today && !goal.completed).length;
   const pinned = items.filter((goal) => goal.pinned).length;
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const archivedRate = total > 0 ? Math.round((archived / total) * 100) : 0;
   const dueGoals = items.filter((goal) => Boolean(goal.dueDate)).length;
   const onTimeCompleted = items.filter((goal) => goal.completed && (!goal.dueDate || goal.dueDate >= today)).length;
   const dueTodayTotal = items.filter((goal) => goal.dueDate === today).length;
@@ -333,6 +334,7 @@ app.get("/api/goals/stats", (req, res) => {
     archived,
     pinned,
     completionRate,
+    archivedRate,
     dueGoals,
     onTimeCompleted,
     dueTodayTotal,
