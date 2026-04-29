@@ -874,7 +874,9 @@ function App() {
               <li key={goal.id}>{goal.title}</li>
             ))}
           </ul>
-        ) : null}
+        ) : (
+          <p className="muted">No active goals due today.</p>
+        )}
         <p className="stats">
           Upcoming ({upcomingRange.from || "n/a"} to {upcomingRange.to || "n/a"}): <strong>{upcomingGoals.length}</strong>
         </p>
@@ -886,7 +888,9 @@ function App() {
               </li>
             ))}
           </ul>
-        ) : null}
+        ) : (
+          <p className="muted">No upcoming goals in the next 7 days.</p>
+        )}
         <div className="bulk-actions">
           <button type="button" onClick={handleCompleteAll}>
             Complete All Active
