@@ -27,6 +27,11 @@ A full-stack web app for planning daily goals, managing study work in bulk, and 
 - Run bulk actions for today, overdue, completed, archived, and pinned goal groups
 - Import and export goal data as JSON
 
+## Project Status
+- Scope focus: daily goal planning, bulk management, and progress review metrics
+- Current state: feature-complete for the core goal workflow and overview dashboard
+- Not included: authentication, multi-user collaboration, and persistent focus-session tracking
+
 ## API Highlights
 - `GET /api/goals` for filtered goal lists with pagination
 - `GET /api/goals/stats` for overview metrics
